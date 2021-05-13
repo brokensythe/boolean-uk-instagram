@@ -16,90 +16,38 @@ headerContainerEl.classList.add("wrapper")
 headerEL.append(headerContainerEl)
 
 // create a function that adds users from the database
-// we want to display an initial section for the current user, then other sections for any other users we may have
-const currentUserWidget = document.createElement("div")
-const userTwoWidget = document.createElement("div")
-const userThreeWidget = document.createElement("div")
+function addUser (user) {
+    const userWidget = document.createElement("div")
+    userWidget.classList.add("chip")
+    headerContainerEl.append(userWidget)
 
-currentUserWidget.classList.add("chip", "active")
-userTwoWidget.classList.add("chip")
-userThreeWidget.classList.add("chip")
+    const userAvatar = document.createElement("div")
+    const userName = document.createElement("span")
 
-headerContainerEl.append(currentUserWidget, userTwoWidget, userThreeWidget)
+    userAvatar.classList.add("avatar-small")
 
-// current user widget
-const currentUserAvatar = document.createElement("div")
-const currentUserName = document.createElement("span")
+    userName.innerText = user.username
 
-currentUserAvatar.classList.add("avatar-small")
-
-fetch("http://localhost:3000/users")
-    .then(function (response) {
-        return response.json()
-    })
-    .then(function (user) {
-        currentUserName.innerText = user[0].username
-    })
-
-currentUserWidget.append(currentUserAvatar, currentUserName)
-
-const currentUserImage = document.createElement("img")
-
-currentUserImage.classList.add("image-correction")
+    userWidget.append(userAvatar, userName)
+    
+    const userImage = document.createElement("img")
+    userImage.classList.add("image-correction")
+    userImage.setAttribute("src", user.avatar)
+    userImage.setAttribute("alt", user.username)
+    
+    userAvatar.append(userImage)
+}
 
 fetch("http://localhost:3000/users")
     .then(function (response) {
         return response.json()
     })
-    .then(function (user) {
-        currentUserImage.setAttribute("src", user[0].avatar)
+    .then(function (users) {
+        for (const user of users) {
+            addUser(user)
+        }
     })
 
-fetch("http://localhost:3000/users")
-    .then(function (response) {
-        return response.json()
-    })
-    .then(function (user) {
-        currentUserImage.setAttribute("alt", user[0].username)
-    })
-
-currentUserAvatar.append(currentUserImage)
-
-// other user widgets
-const userTwoAvatar = document.createElement("div")
-const userTwoName = document.createElement("span")
-
-userTwoAvatar.classList.add("avatar-small")
-
-userTwoName.innerText = "Picasso"
-
-userTwoWidget.append(userTwoAvatar, userTwoName)
-
-const userTwoImage = document.createElement("img")
-
-userTwoImage.classList.add("image-correction")
-userTwoImage.setAttribute("src", "https://www.sartle.com/sites/default/files/images/artist/pablo-picasso-137216-5115406.jpg")
-userTwoImage.setAttribute("alt", "Picasso")
-
-userTwoAvatar.append(userTwoImage)
-
-
-const userThreeAvatar = document.createElement("div")
-const userThreeName = document.createElement("span")
-
-userThreeAvatar.classList.add("avatar-small")
-
-userThreeName.innerText = "Van Gogh"
-
-userThreeWidget.append(userThreeAvatar, userThreeName)
-
-const userThreeImage = document.createElement("img")
-
-userThreeImage.classList.add("image-correction")
-userThreeImage.setAttribute("src", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3K588mpXWsXuFcE26ZsuTRN2IeFeKCub8hA&amp;usqp=CAU")
-userThreeImage.setAttribute("alt", "Van Gogh")
-
-userThreeAvatar.append(userThreeImage)
 
 // adding main child elements
 const postSectionEl = document.createElement("section")
