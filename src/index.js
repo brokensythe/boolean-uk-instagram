@@ -118,125 +118,169 @@ feedList.classList.add("stack")
 
 feedSectionEl.append(feedList)
 
-const post = document.createElement("li")
-post.classList.add("post")
+// create a function to produce posts
+function addPost (post) {
+    const postEl = document.createElement("li")
+    postEl.classList.add("post")
+    
+    feedList.append(postEl)
+    
+    // adding children to list items
+    const posterAvatarEl = document.createElement("div")
+    posterAvatarEl.classList.add("chip", "active")
+    
+    const postImageEl = document.createElement("div")
+    postImageEl.classList.add("post--image")
+    
+    const postContentEl = document.createElement("div")
+    postContentEl.classList.add("post--content")
+    
+    const postCommentsContainer = document.createElement("div")
+    postCommentsContainer.classList.add("post--comments")
+    
+    postEl.append(posterAvatarEl, postImageEl, postContentEl, postCommentsContainer)
+    
+    // adding poster avatar to post
+    const posterAvatar = document.createElement("div")
+    const posterName = document.createElement("span")
+    
+    posterAvatar.classList.add("avatar-small")
+    
+    fetch(`http://localhost:3000/users/${post.userId}`)
+        .then(function (response) {
+            return response.json()
+        })
+        .then(function (user) {
+            posterName.innerText = user.username
+        })
+    
+    posterAvatarEl.append(posterAvatar, posterName)
+    
+    const posterImage = document.createElement("img")
+    posterImage.classList.add("image-correction")
+    fetch(`http://localhost:3000/users/${post.userId}`)
+        .then(function (response) {
+            return response.json()
+        })
+        .then(function (user) {
+            posterImage.setAttribute("src", user.avatar)
+        })
+    fetch(`http://localhost:3000/users/${post.userId}`)
+        .then(function (response) {
+            return response.json()
+        })
+        .then(function (user) {
+            posterImage.setAttribute("alt", user.username)
+        })
+    
+    posterAvatar.append(posterImage)
+    
+    // add image
+    const postImage = document.createElement("img")
+    postImage.setAttribute("src", post.image.src)
+    postImage.setAttribute("alt", post.image.alt)
+    postImage.classList.add("image-correction")
+    
+    postImageEl.append(postImage)
+    
+    // add content
+    const postHeader = document.createElement("h2")
+    postHeader.innerText = post.title
+    
+    const postContent = document.createElement("p")
+    postContent.innerText = post.content
+    
+    postContentEl.append(postHeader, postContent)
+    
+    // add comments elements
+    const commentsHeader = document.createElement("h3")
+    commentsHeader.innerText = "Comments"
+    
+    const commentForm = document.createElement("form")
+    commentForm.setAttribute("id", "create-comment-form")
+    commentForm.setAttribute("autocomplete", "off")
+    
+    postCommentsContainer.append(commentsHeader)
+    
+    // comment one content
+    for (const comment of post.comments) {
+        const commentContainer = document.createElement("div")
+        commentContainer.classList.add("post--comment")
+    
+        const commentAvatar = document.createElement("div")
+        const commentEl = document.createElement("p")
+        
+        commentAvatar.classList.add("avatar-small")
 
-feedList.append(post)
+        commentEl.innerText = comment.content
+        
+        commentContainer.append(commentAvatar, commentEl)
+        
+        const commentImage = document.createElement("img")
+        commentImage.classList.add("image-correction")
+        fetch(`http://localhost:3000/users/${comment.userId}`)
+            .then(function (response) {
+                return response.json()
+            })
+            .then(function (user) {
+                commentImage.setAttribute("src", user.avatar)
+            })
+        fetch(`http://localhost:3000/users/${comment.userId}`)
+            .then(function (response) {
+                return response.json()
+            })
+            .then(function (user) {
+                commentImage.setAttribute("alt", user.username)
+            })
+        
+        commentAvatar.append(commentImage)
+    
+        postCommentsContainer.append(commentContainer)
+    }
+    
+    // comment two content
+    // const commentTwoAvatar = document.createElement("div")
+    // const commentTwo = document.createElement("p")
+    
+    // commentTwoAvatar.classList.add("avatar-small")
+    
+    // commentTwo.innerText = "So beautiful... perfect!"
+    
+    // commentTwoContainer.append(commentTwoAvatar, commentTwo)
+    
+    // const commentTwoImage = document.createElement("img")
+    
+    // commentTwoImage.classList.add("image-correction")
+    // commentTwoImage.setAttribute("src", "https://www.sartle.com/sites/default/files/images/artist/pablo-picasso-137216-5115406.jpg")
+    // commentTwoImage.setAttribute("alt", "Picasso")
+    
+    // commentTwoAvatar.append(commentTwoImage)
+    
+    // comment form content
+    const commentLabel = document.createElement("label")
+    commentLabel.setAttribute("for", "comment")
+    commentLabel.innerText = "Add comment"
+    
+    const commentInput = document.createElement("input")
+    commentInput.setAttribute("id", "comment")
+    commentInput.setAttribute("name", "comment")
+    commentInput.setAttribute("type", "text")
+    
+    const commentButton = document.createElement("button")
+    commentButton.setAttribute("type", "submit")
+    commentButton.innerText = "Comment"
+    
+    commentForm.append(commentLabel, commentInput, commentButton)
+    
+    postCommentsContainer.append(commentForm)
+}
 
-// adding children to list items
-const posterAvatarEl = document.createElement("div")
-posterAvatarEl.classList.add("chip", "active")
-
-const postImageEl = document.createElement("div")
-postImageEl.classList.add("post--image")
-
-const postContentEl = document.createElement("div")
-postContentEl.classList.add("post--content")
-
-const postCommentsContainer = document.createElement("div")
-postCommentsContainer.classList.add("post--comments")
-
-post.append(posterAvatarEl, postImageEl, postContentEl, postCommentsContainer)
-
-// adding poster avatar to post
-const posterAvatar = document.createElement("div")
-const posterName = document.createElement("span")
-
-posterAvatar.classList.add("avatar-small")
-
-posterName.innerText = "Salvador Dali"
-
-posterAvatarEl.append(posterAvatar, posterName)
-
-const posterImage = document.createElement("img")
-
-posterImage.classList.add("image-correction")
-posterImage.setAttribute("src", "https://uploads5.wikiart.org/images/salvador-dali.jpg!Portrait.jpg")
-posterImage.setAttribute("alt", "Salvador Dali")
-
-posterAvatar.append(posterImage)
-
-// add image
-const postImage = document.createElement("img")
-postImage.setAttribute("src", "https://images.unsplash.com/photo-1616745309504-0cb79e9ae590?ixid=MXwxMjA3fDB8MHx0b3BpYy1mZWVkfDI0fDZzTVZqVExTa2VRfHxlbnwwfHx8&amp;ixlib=rb-1.2.1&amp;auto=format&amp;fit=crop&amp;w=800&amp;q=60")
-postImage.setAttribute("alt", "undefined")
-postImage.classList.add("image-correction")
-
-postImageEl.append(postImage)
-
-// add content
-const postHeader = document.createElement("h2")
-postHeader.innerText = "A tree in blossom"
-
-const postContent = document.createElement("p")
-postContent.innerText = "Spring is finally here... I just love the colours."
-
-postContentEl.append(postHeader, postContent)
-
-// add comments elements
-const commentsHeader = document.createElement("h3")
-commentsHeader.innerText = "Comments"
-
-const commentOneContainer = document.createElement("div")
-commentOneContainer.classList.add("post--comment")
-
-const commentTwoContainer = document.createElement("div")
-commentTwoContainer.classList.add("post--comment")
-
-const commentForm = document.createElement("form")
-commentForm.setAttribute("id", "create-comment-form")
-commentForm.setAttribute("autocomplete", "off")
-
-postCommentsContainer.append(commentsHeader, commentOneContainer, commentTwoContainer, commentForm)
-
-// comment one content
-const commentOneAvatar = document.createElement("div")
-const commentOne = document.createElement("p")
-
-commentOneAvatar.classList.add("avatar-small")
-
-commentOne.innerText = "What a great photo!!"
-
-commentOneContainer.append(commentOneAvatar, commentOne)
-
-const commentOneImage = document.createElement("img")
-
-commentOneImage.classList.add("image-correction")
-commentOneImage.setAttribute("src", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3K588mpXWsXuFcE26ZsuTRN2IeFeKCub8hA&amp;usqp=CAU")
-commentOneImage.setAttribute("alt", "Van Gogh")
-
-commentOneAvatar.append(commentOneImage)
-
-// comment two content
-const commentTwoAvatar = document.createElement("div")
-const commentTwo = document.createElement("p")
-
-commentTwoAvatar.classList.add("avatar-small")
-
-commentTwo.innerText = "So beautiful... perfect!"
-
-commentTwoContainer.append(commentTwoAvatar, commentTwo)
-
-const commentTwoImage = document.createElement("img")
-
-commentTwoImage.classList.add("image-correction")
-commentTwoImage.setAttribute("src", "https://www.sartle.com/sites/default/files/images/artist/pablo-picasso-137216-5115406.jpg")
-commentTwoImage.setAttribute("alt", "Picasso")
-
-commentTwoAvatar.append(commentTwoImage)
-
-// comment form content
-const commentLabel = document.createElement("label")
-commentLabel.setAttribute("for", "comment")
-commentLabel.innerText = "Add comment"
-
-const commentInput = document.createElement("input")
-commentInput.setAttribute("id", "comment")
-commentInput.setAttribute("name", "comment")
-commentInput.setAttribute("type", "text")
-
-const commentButton = document.createElement("button")
-commentButton.setAttribute("type", "submit")
-commentButton.innerText = "Comment"
-
-commentForm.append(commentLabel, commentInput, commentButton)
+fetch("http://localhost:3000/posts")
+    .then( function (response) {
+        return response.json()
+    })
+    .then( function (posts) {
+        for (const post of posts) {
+            addPost(post)
+        }
+    })
