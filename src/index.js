@@ -15,6 +15,7 @@ const headerContainerEl = document.createElement("div")
 headerContainerEl.classList.add("wrapper")
 headerEL.append(headerContainerEl)
 
+// create a function that adds users from the database
 // we want to display an initial section for the current user, then other sections for any other users we may have
 const currentUserWidget = document.createElement("div")
 const userTwoWidget = document.createElement("div")
@@ -32,15 +33,35 @@ const currentUserName = document.createElement("span")
 
 currentUserAvatar.classList.add("avatar-small")
 
-currentUserName.innerText = "Salvador Dali"
+fetch("http://localhost:3000/users")
+    .then(function (response) {
+        return response.json()
+    })
+    .then(function (user) {
+        currentUserName.innerText = user[0].username
+    })
 
 currentUserWidget.append(currentUserAvatar, currentUserName)
 
 const currentUserImage = document.createElement("img")
 
 currentUserImage.classList.add("image-correction")
-currentUserImage.setAttribute("src", "https://uploads5.wikiart.org/images/salvador-dali.jpg!Portrait.jpg")
-currentUserImage.setAttribute("alt", "Salvador Dali")
+
+fetch("http://localhost:3000/users")
+    .then(function (response) {
+        return response.json()
+    })
+    .then(function (user) {
+        currentUserImage.setAttribute("src", user[0].avatar)
+    })
+
+fetch("http://localhost:3000/users")
+    .then(function (response) {
+        return response.json()
+    })
+    .then(function (user) {
+        currentUserImage.setAttribute("alt", user[0].username)
+    })
 
 currentUserAvatar.append(currentUserImage)
 
