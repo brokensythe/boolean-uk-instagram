@@ -1,3 +1,16 @@
+// Deliverables
+// - A user can select the user they want to post or comment as
+// - From the create a post section, a user can:
+//     - Enter a post's image URL
+//     - Enter a post's title
+//     - Enter a post's content
+//     - Create a post and view it in the feed
+// - From the feed section, a user can:
+//     - View a post and the owner of the post
+//     - View a posts' comments and the owner of the comments
+//     - Add a comment to a post
+//   - Add a like to a post
+
 // find the div in which our content goes
 const bodyEl = document.querySelector("#root")
 
@@ -7,6 +20,9 @@ headerEL.classList.add("main-header")
 
 const mainEl = document.createElement("main")
 mainEl.classList.add("wrapper")
+
+let currentUser = undefined
+let userWidgetArray = []
 
 bodyEl.append(headerEL, mainEl)
 
@@ -36,19 +52,35 @@ function addUser (user) {
     userImage.setAttribute("alt", user.username)
     
     userAvatar.append(userImage)
+
+    userWidgetArray.push(userWidget)
+
+    return userWidget
+}
+
+
+function addUsers (users) {
+    for (const user of users) {
+        addUser(user).addEventListener("click", function () {
+            currentUser = user
+            for (const widget of userWidgetArray) {
+                widget.classList.remove("active")
+            }
+            userWidgetArray[currentUser.id - 1].classList.add("active")
+            return currentUser
+        })
+    }
 }
 
 fetch("http://localhost:3000/users")
-    .then(function (response) {
-        return response.json()
+.then(function (response) {
+    return response.json()
     })
     .then(function (users) {
-        for (const user of users) {
-            addUser(user)
-        }
+        addUsers(users)
     })
 
-
+    
 // adding main child elements
 const postSectionEl = document.createElement("section")
 postSectionEl.classList.add("create-post-section")
@@ -112,6 +144,35 @@ postSubmitButton.innerText = "Post"
 
 actionButtonEl.append(postPreviewButton, postSubmitButton)
 
+postForm.addEventListener("submit", function (event) {
+    event.preventDefault()
+
+    const post = {
+        "title": postForm.title.value,
+        "content": postForm.content.value,
+        "image": {
+          "src": postForm.image.value,
+          "alt": postForm.title.value
+        },
+        "likes": 0,
+        "userId": currentUser.id
+      }
+
+    fetch("http://localhost:3000/posts", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(post)
+    })
+    .then(function (response) {
+        return response.json()
+    })
+    .then(function (newPost) {
+        addPost(newPost)
+    })
+})
+
 // the feed section
 const feedList = document.createElement("ul")
 feedList.classList.add("stack")
@@ -127,7 +188,7 @@ function addPost (post) {
     
     // adding children to list items
     const posterAvatarEl = document.createElement("div")
-    posterAvatarEl.classList.add("chip", "active")
+    posterAvatarEl.classList.add("chip")
     
     const postImageEl = document.createElement("div")
     postImageEl.classList.add("post--image")
@@ -186,11 +247,33 @@ function addPost (post) {
     // add content
     const postHeader = document.createElement("h2")
     postHeader.innerText = post.title
+
+    const postLikesButton = document.createElement("button")
+    postLikesButton.innerText = `❤`
+
+    postLikesButton.addEventListener("click", function () {
+        fetch(`http://localhost:3000/posts/${post.id}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({likes: ++post.likes}) 
+        })
+        .then(function (response) {
+            return response.json()
+        })
+        .then(function (updatedPost) {
+            postLikes.innerText = `Likes ${updatedPost.likes}`
+        })
+    })
+
+    const postLikes = document.createElement("span")
+    postLikes.innerText = `Likes ${post.likes}`
     
     const postContent = document.createElement("p")
     postContent.innerText = post.content
     
-    postContentEl.append(postHeader, postContent)
+    postContentEl.append(postHeader, postLikesButton, postLikes, postContent)
     
     // add comments elements
     const commentsHeader = document.createElement("h3")
@@ -199,62 +282,109 @@ function addPost (post) {
     const commentForm = document.createElement("form")
     commentForm.setAttribute("id", "create-comment-form")
     commentForm.setAttribute("autocomplete", "off")
-    
-    postCommentsContainer.append(commentsHeader)
-    
-    // comment one content
-    for (const comment of post.comments) {
-        const commentContainer = document.createElement("div")
-        commentContainer.classList.add("post--comment")
-    
-        const commentAvatar = document.createElement("div")
-        const commentEl = document.createElement("p")
-        
-        commentAvatar.classList.add("avatar-small")
 
-        commentEl.innerText = comment.content
+    const commentBlock = document.createElement("div")
+    commentBlock.classList.add("post--comments")
+
+    commentForm.addEventListener("submit", function (event) {
+        event.preventDefault()
+
+        const comment = {
+            "content": commentForm.comment.value,
+            "userId": currentUser.id,
+            "postId": post.id
+          }
+
+        fetch("http://localhost:3000/comments", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(comment)
+        })
+        .then(function (response) {
+           return response.json()
+        })
+        .then(function (newComment) {
+            const commentContainer = document.createElement("div")
+            commentContainer.classList.add("post--comment")
         
-        commentContainer.append(commentAvatar, commentEl)
+            const commentAvatar = document.createElement("div")
+            const commentEl = document.createElement("p")
+            
+            commentAvatar.classList.add("avatar-small")
+
+            commentEl.innerText = newComment.content
+            
+            commentContainer.append(commentAvatar, commentEl)
+            
+            const commentImage = document.createElement("img")
+            commentImage.classList.add("image-correction")
+            fetch(`http://localhost:3000/users/${newComment.userId}`)
+                .then(function (response) {
+                    return response.json()
+                })
+                .then(function (user) {
+                    commentImage.setAttribute("src", user.avatar)
+                })
+            fetch(`http://localhost:3000/users/${newComment.userId}`)
+                .then(function (response) {
+                    return response.json()
+                })
+                .then(function (user) {
+                    commentImage.setAttribute("alt", user.username)
+                })
+            
+            commentAvatar.append(commentImage)
         
-        const commentImage = document.createElement("img")
-        commentImage.classList.add("image-correction")
-        fetch(`http://localhost:3000/users/${comment.userId}`)
-            .then(function (response) {
-                return response.json()
-            })
-            .then(function (user) {
-                commentImage.setAttribute("src", user.avatar)
-            })
-        fetch(`http://localhost:3000/users/${comment.userId}`)
-            .then(function (response) {
-                return response.json()
-            })
-            .then(function (user) {
-                commentImage.setAttribute("alt", user.username)
-            })
-        
-        commentAvatar.append(commentImage)
+            commentBlock.append(commentContainer)
+        })
+    })
     
-        postCommentsContainer.append(commentContainer)
-    }
-    
-    // comment two content
-    // const commentTwoAvatar = document.createElement("div")
-    // const commentTwo = document.createElement("p")
-    
-    // commentTwoAvatar.classList.add("avatar-small")
-    
-    // commentTwo.innerText = "So beautiful... perfect!"
-    
-    // commentTwoContainer.append(commentTwoAvatar, commentTwo)
-    
-    // const commentTwoImage = document.createElement("img")
-    
-    // commentTwoImage.classList.add("image-correction")
-    // commentTwoImage.setAttribute("src", "https://www.sartle.com/sites/default/files/images/artist/pablo-picasso-137216-5115406.jpg")
-    // commentTwoImage.setAttribute("alt", "Picasso")
-    
-    // commentTwoAvatar.append(commentTwoImage)
+    postCommentsContainer.append(commentsHeader, commentBlock)
+
+    fetch("http://localhost:3000/comments")
+    .then(function (response) {
+        return response.json()
+    })
+    .then(function (serverComments) {
+         for (const comment of serverComments) {
+             if (post.id===comment.postId) {
+                 const commentContainer = document.createElement("div")
+                 commentContainer.classList.add("post--comment")
+             
+                 const commentAvatar = document.createElement("div")
+                 const commentEl = document.createElement("p")
+                 
+                 commentAvatar.classList.add("avatar-small")
+         
+                 commentEl.innerText = comment.content
+                 
+                 commentContainer.append(commentAvatar, commentEl)
+                 
+                 const commentImage = document.createElement("img")
+                 commentImage.classList.add("image-correction")
+                 fetch(`http://localhost:3000/users/${comment.userId}`)
+                     .then(function (response) {
+                         return response.json()
+                     })
+                     .then(function (user) {
+                         commentImage.setAttribute("src", user.avatar)
+                     })
+                 fetch(`http://localhost:3000/users/${comment.userId}`)
+                     .then(function (response) {
+                         return response.json()
+                     })
+                     .then(function (user) {
+                         commentImage.setAttribute("alt", user.username)
+                     })
+                 
+                 commentAvatar.append(commentImage)
+             
+                 commentBlock.append(commentContainer)
+             }
+         }
+    })
     
     // comment form content
     const commentLabel = document.createElement("label")
@@ -271,7 +401,7 @@ function addPost (post) {
     commentButton.innerText = "Comment"
     
     commentForm.append(commentLabel, commentInput, commentButton)
-    
+
     postCommentsContainer.append(commentForm)
 }
 

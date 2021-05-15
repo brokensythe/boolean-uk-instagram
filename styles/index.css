@@ -170,6 +170,24 @@ textarea {
   font-size: 1.25rem;
 }
 
+.post--content h2 {
+  margin-bottom: 0px;
+}
+
+.post--content button {
+  padding: 0;
+  height: 20px;
+  background-color: #fff;
+  border: none;
+  font-size: 20px;
+  color: red;
+  margin-right: 5px;
+}
+
+.post--content span {
+  font-weight: bold;
+}
+
 .post p {
   font-size: 0.875rem;
 }
